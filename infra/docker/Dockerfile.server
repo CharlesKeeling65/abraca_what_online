@@ -1,0 +1,11 @@
+FROM node:20-alpine
+WORKDIR /app
+
+# 脚手架阶段：仅复制源码，后续可在此添加 pnpm/yarn install + build。
+COPY . .
+
+ENV HOST=0.0.0.0
+ENV PORT=8080
+EXPOSE 8080
+
+CMD ["node", "apps/server/dist/index.js"]

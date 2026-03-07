@@ -1,0 +1,17 @@
+{
+  "name": "abraca-what-online",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cross-platform online Abraca... What? project skeleton",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc -b",
+    "lint": "echo \"TODO: add eslint\""
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
