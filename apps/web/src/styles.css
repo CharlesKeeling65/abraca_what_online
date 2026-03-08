@@ -42,35 +42,113 @@ body::before {
   margin: 24px auto 40px;
 }
 
-.command-deck {
+.app-shell {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 18px;
-  padding: 14px;
+  gap: 18px;
+}
+
+.app-topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 22px;
+  border-radius: 28px;
   border: 1px solid var(--line);
-  border-radius: 24px;
   background: linear-gradient(180deg, rgba(75, 48, 35, 0.92), rgba(36, 22, 18, 0.92));
   box-shadow: var(--shadow);
 }
 
-.command-deck input,
-.command-deck button {
-  min-height: 48px;
-  border: 0;
-  border-radius: 16px;
+.app-topbar h1,
+.hero-card h1 {
+  margin: 0;
+  font-family: "Baskerville", "Palatino Linotype", serif;
 }
 
-.command-deck input {
-  grid-column: span 2;
+.topbar-meta {
+  display: grid;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: 20px;
+  background: rgba(255, 248, 234, 0.06);
+  color: var(--muted);
+  text-align: right;
+}
+
+.page {
+  display: grid;
+  gap: 18px;
+}
+
+.hero-card,
+.panel-card {
+  padding: 22px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 214, 130, 0.14);
+  background: linear-gradient(180deg, rgba(45, 28, 21, 0.92), rgba(26, 17, 14, 0.92));
+  box-shadow: var(--shadow);
+}
+
+.hero-card p,
+.panel-card p {
+  color: var(--muted);
+}
+
+.hero-card--compact {
+  padding-bottom: 14px;
+}
+
+.split-grid,
+.tri-grid,
+.game-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.split-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.tri-grid {
+  grid-template-columns: 1fr 1.1fr 0.9fr;
+}
+
+.game-shell {
+  grid-template-columns: 320px 1fr;
+}
+
+.game-sidebar {
+  display: grid;
+  gap: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.field input {
+  min-height: 50px;
   padding: 0 14px;
+  border: 0;
+  border-radius: 16px;
   color: var(--ink);
   background: rgba(255, 248, 234, 0.08);
   outline: 1px solid rgba(255, 213, 143, 0.14);
 }
 
-.command-deck button {
-  grid-column: span 1;
+.button-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 16px;
   color: #29170a;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -80,9 +158,44 @@ body::before {
   padding: 0 10px;
 }
 
-.command-deck button:hover {
+button:hover {
   transform: translateY(-1px);
   box-shadow: 0 12px 24px rgba(242, 157, 53, 0.26);
+}
+
+.status-strip,
+.alert-card,
+.empty-card,
+.room-card,
+.status-card {
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 214, 130, 0.14);
+  background: rgba(255, 248, 234, 0.06);
+}
+
+.alert-card--error {
+  border-color: rgba(255, 159, 122, 0.42);
+  background: rgba(94, 34, 24, 0.72);
+}
+
+.room-list,
+.status-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.room-card__head,
+.status-card__title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.status-card--host {
+  box-shadow: 0 0 0 1px rgba(255, 208, 119, 0.3);
 }
 
 .scene-surface {
@@ -332,13 +445,10 @@ body::before {
 }
 
 @media (max-width: 1200px) {
-  .command-deck {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
-  .command-deck input,
-  .command-deck button {
-    grid-column: span 2;
+  .split-grid,
+  .tri-grid,
+  .game-shell {
+    grid-template-columns: 1fr;
   }
 
   .tabletop__arena {
@@ -363,20 +473,14 @@ body::before {
     min-height: auto;
   }
 
-  .command-deck {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: 10px;
-  }
-
-  .command-deck input,
-  .command-deck button,
+  .button-row,
   .board-core__placeholders,
   .board-core__spelltrack,
   .hand-row {
-    grid-column: span 1;
     grid-template-columns: 1fr;
   }
 
+  .app-topbar,
   .tabletop__header,
   .tabletop__footer {
     flex-direction: column;
