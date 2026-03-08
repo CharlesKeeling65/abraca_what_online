@@ -1,0 +1,20 @@
+{
+  "name": "abraca-what-online",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Cross-platform online Abraca... What? project",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "start:server": "node dist/apps/server/src/index.js",
+    "lint": "echo \"TODO: add eslint\"",
+    "smoke": "npm run build && node dist/scripts/smoke.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
