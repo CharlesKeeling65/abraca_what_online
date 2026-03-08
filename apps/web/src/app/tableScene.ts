@@ -62,9 +62,9 @@ export function buildTableSceneModel(
   return {
     roomId: snapshot.room.roomId,
     currentPlayerId: snapshot.room.round.currentPlayerId,
-    you: toSeatModel(localPlayer, snapshot.room.round.currentPlayerId, "You"),
+    you: toSeatModel(localPlayer, snapshot.room.round.currentPlayerId, "你"),
     opponents: opponents.map((player, index) =>
-      toSeatModel(player, snapshot.room.round.currentPlayerId, `Seat ${index + 2}`),
+      toSeatModel(player, snapshot.room.round.currentPlayerId, `座位 ${index + 2}`),
     ),
     spellStats,
     centerDeck: {
@@ -82,7 +82,7 @@ export function createPlaceholderSnapshot(): GameSnapshot {
       players: [
         {
           playerId: "p1",
-          nickname: "You",
+          nickname: "你",
           hp: 6,
           score: 2,
           seatIndex: 0,

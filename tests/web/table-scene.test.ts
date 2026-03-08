@@ -30,6 +30,6 @@ test("table scene placeholder snapshot always yields a local player seat", () =>
 
   const model = buildTableSceneModel(snapshot, "p1");
 
-  assert.equal(model.you.seatLabel, "You");
+  assert.equal(model.you.seatLabel, "你");
   assert.ok(model.centerDeck.deckRemaining > 0);
 });

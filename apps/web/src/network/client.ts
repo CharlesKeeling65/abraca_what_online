@@ -19,7 +19,7 @@ export class WebGameClient {
       this.mockClientId = session.clientId;
       onMessage({
         type: "SYSTEM_NOTICE",
-        payload: { message: `Connected mock session as ${session.playerId}` },
+        payload: { message: `已连接本地 mock 会话，玩家编号 ${session.playerId}` },
       });
       return;
     }
@@ -29,7 +29,7 @@ export class WebGameClient {
     this.ws.onopen = () => {
       onMessage({
         type: "SYSTEM_NOTICE",
-        payload: { message: `Connected websocket as ${nickname}` },
+        payload: { message: `已通过 WebSocket 连接，当前昵称 ${nickname}` },
       });
     };
     this.ws.onmessage = (ev) => {
@@ -39,13 +39,13 @@ export class WebGameClient {
     this.ws.onerror = () => {
       onMessage({
         type: "SYSTEM_NOTICE",
-        payload: { message: "WebSocket transport error" },
+        payload: { message: "WebSocket 连接发生错误" },
       });
     };
     this.ws.onclose = () => {
       onMessage({
         type: "SYSTEM_NOTICE",
-        payload: { message: "WebSocket disconnected" },
+        payload: { message: "WebSocket 连接已断开" },
       });
     };
   }

@@ -77,6 +77,7 @@ body::before {
   background: linear-gradient(135deg, #ffd486, #f29d35);
   cursor: pointer;
   transition: transform 160ms ease, box-shadow 160ms ease;
+  padding: 0 10px;
 }
 
 .command-deck button:hover {
@@ -311,6 +312,23 @@ body::before {
   margin: 0;
   padding-left: 18px;
   color: var(--muted);
+}
+
+.rules-hint strong {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+
+.rules-hint ol {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.rules-hint--warn {
+  border-color: rgba(255, 185, 94, 0.42);
+  background: linear-gradient(180deg, rgba(88, 49, 26, 0.82), rgba(57, 31, 18, 0.82));
 }
 
 @media (max-width: 1200px) {

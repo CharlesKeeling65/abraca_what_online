@@ -5,6 +5,7 @@ import {
   type GameSnapshot,
   type SpellId,
 } from "../../../../packages/shared/src/index";
+import { buildPlayGuide } from "./playGuide";
 import { buildTableSceneModel, createPlaceholderSnapshot } from "./tableScene";
 
 function spellTrack(snapshot: GameSnapshot): string {
@@ -14,7 +15,7 @@ function spellTrack(snapshot: GameSnapshot): string {
       return `
         <div class="spell-token" data-asset="${assetName}">
           <span class="spell-token__id">${spellId}</span>
-          <span class="spell-token__count">${snapshot.room.board.playedCountBySpell[spellId]} played</span>
+          <span class="spell-token__count">已打出 ${snapshot.room.board.playedCountBySpell[spellId]} 枚</span>
         </div>
       `;
     })
@@ -29,8 +30,8 @@ function seatCard(
     <article class="seat seat--${variant} ${player.isCurrentTurn ? "seat--active" : ""}">
       <div class="seat__label">${player.seatLabel}</div>
       <div class="seat__name">${player.nickname}</div>
-      <div class="seat__stats">HP ${player.hp} <span>Score ${player.score}</span></div>
-      <div class="seat__cards">${player.handCount} hidden stones</div>
+      <div class="seat__stats">生命 ${player.hp} <span>分数 ${player.score}</span></div>
+      <div class="seat__cards">手牌 ${player.handCount} 枚</div>
     </article>
   `;
 }
@@ -41,7 +42,7 @@ function renderHandCards(): string {
     .map(
       (_, index) => `
         <div class="hand-card" data-asset="${SHARED_ASSET_PREFIX}/${getSpellStoneAssetName(0 as SpellId, "back")}">
-          <span>Stone ${index + 1}</span>
+          <span>手牌 ${index + 1}</span>
         </div>
       `,
     )
@@ -52,20 +53,22 @@ export function renderApp(
   snapshot: GameSnapshot | null,
   localPlayerId: string | null,
   notices: string[],
+  connectionUrl: string,
 ): string {
   const activeSnapshot = snapshot ?? createPlaceholderSnapshot();
   const model = buildTableSceneModel(activeSnapshot, localPlayerId ?? "p1");
   const backgroundAsset = `${SHARED_ASSET_PREFIX}/${getBoardBackgroundAsset("desktop")}`;
+  const guide = buildPlayGuide(connectionUrl, model.roomId);
 
   return `
     <section class="tabletop" data-asset="${backgroundAsset}">
       <header class="tabletop__header">
         <div>
-          <p class="eyebrow">Abraca... What? Online</p>
-          <h1>Room ${model.roomId}</h1>
+          <p class="eyebrow">出包魔法师线上牌桌</p>
+          <h1>房间 ${model.roomId}</h1>
         </div>
         <div class="round-chip">
-          <span>Round ${activeSnapshot.room.round.roundNo}</span>
+          <span>第 ${activeSnapshot.room.round.roundNo} 轮</span>
           <strong>${activeSnapshot.room.round.phase}</strong>
         </div>
       </header>
@@ -77,22 +80,22 @@ export function renderApp(
 
         <div class="board-core">
           <div class="board-core__tower">
-            <p>Wizard Tower</p>
-            <strong>Deck ${model.centerDeck.deckRemaining}</strong>
-            <span>Secrets ${model.centerDeck.secretStonesRemaining}</span>
+            <p>魔法师之塔</p>
+            <strong>牌堆余量 ${model.centerDeck.deckRemaining}</strong>
+            <span>秘密石 ${model.centerDeck.secretStonesRemaining}</span>
           </div>
           <div class="board-core__spelltrack">
             ${spellTrack(activeSnapshot)}
           </div>
           <div class="board-core__placeholders">
             <div class="asset-tile" data-asset="${SHARED_ASSET_PREFIX}/ui/score_tower_1024x2048.png">
-              Score tower anchor
+              计分塔贴图落位
             </div>
             <div class="asset-tile" data-asset="${SHARED_ASSET_PREFIX}/ui/avatar_frame_256.png">
-              Avatar frame anchor
+              头像框贴图落位
             </div>
             <div class="asset-tile" data-asset="${SHARED_ASSET_PREFIX}/ui/button_primary_320x96.png">
-              Action button anchor
+              主按钮贴图落位
             </div>
           </div>
         </div>
@@ -107,14 +110,17 @@ export function renderApp(
 
       <footer class="tabletop__footer">
         <div class="notice-board">
-          <p>Table Log</p>
+          <p>牌桌日志</p>
           <ul>
-            ${notices.length > 0 ? notices.map((notice) => `<li>${notice}</li>`).join("") : "<li>Connected scene preview ready.</li>"}
+            ${notices.length > 0 ? notices.map((notice) => `<li>${notice}</li>`).join("") : "<li>当前显示的是可交互的牌桌预览。</li>"}
           </ul>
         </div>
-        <div class="rules-hint">
-          <p>Combo rule</p>
-          <span>Declared spells must be non-decreasing within a turn.</span>
+        <div class="rules-hint ${guide.isMockMode ? "rules-hint--warn" : ""}">
+          <p>试玩指引</p>
+          <strong>${guide.connectionTip}</strong>
+          <ol>
+            ${guide.steps.map((step) => `<li>${step}</li>`).join("")}
+          </ol>
         </div>
       </footer>
     </section>
