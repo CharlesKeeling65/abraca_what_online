@@ -10,11 +10,18 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/tests/**/*.test.js",
+    "verify": "npm run typecheck && npm run test && npm run smoke",
     "start:server": "node dist/apps/server/src/index.js",
     "lint": "echo \"TODO: add eslint\"",
     "smoke": "npm run build && node dist/scripts/smoke.js"
   },
   "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "@types/node": "^24.0.0",
     "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
   }
 }

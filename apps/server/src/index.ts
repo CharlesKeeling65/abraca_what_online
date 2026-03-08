@@ -1,12 +1,16 @@
 import { loadEnv } from "./config/env";
-import { WsGateway } from "./net/WsGateway";
+import { createServerApp } from "./net/createServerApp";
 
-function bootstrap(): WsGateway {
+async function bootstrap(): Promise<void> {
   const env = loadEnv();
-  const gateway = new WsGateway();
+  const app = await createServerApp(env);
+  await app.listen();
   // eslint-disable-next-line no-console
-  console.log(`[server] gateway ready on ${env.host}:${env.port}`);
-  return gateway;
+  console.log(`[server] listening on http://${env.host}:${app.port} (ws path: /ws)`);
 }
 
-bootstrap();
+bootstrap().catch((error) => {
+  // eslint-disable-next-line no-console
+  console.error("[server] failed to start", error);
+  process.exitCode = 1;
+});
