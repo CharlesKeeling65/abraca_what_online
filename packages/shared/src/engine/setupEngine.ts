@@ -1,5 +1,4 @@
 import {
-  MIN_PLAYERS,
   SECRET_STONES_COUNT,
   SPELL_IDS,
   SPELL_TOTAL_COUNT,
@@ -47,8 +46,8 @@ export function createInitialRuntimeRoom(
   hostPlayerId: string,
   players: Array<{ playerId: string; nickname: string }>,
 ): RoomRuntimeState {
-  if (players.length < MIN_PLAYERS) {
-    throw new Error(`Need at least ${MIN_PLAYERS} players`);
+  if (players.length < 1) {
+    throw new Error("Need at least 1 player");
   }
 
   let pool = shuffle(buildFullSpellPool());
@@ -70,6 +69,7 @@ export function createInitialRuntimeRoom(
       seatIndex: idx,
       handCount: handStones.length,
       isAlive: true,
+      isReady: false,
     };
   });
 
@@ -85,7 +85,7 @@ export function createInitialRuntimeRoom(
     players: publicPlayers,
     round: {
       roundNo: 1,
-      phase: "in_round",
+      phase: "waiting",
       currentPlayerId: players[0]?.playerId ?? null,
       lastSuccessfulSpellId: null,
       deckRemaining: pool.length,

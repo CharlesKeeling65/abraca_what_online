@@ -4,24 +4,13 @@
 
 ## 已实现（当前阶段）
 
-- 共享规则核心数据结构（`packages/shared`）。
-- 基础回合动作执行（宣言施法命中/失误与连击约束）。
-- 可运行 WebSocket 服务器（建房、入房、回合同步、重同步）。
-- 最小 Web 客户端页面（连接、建房、入房、宣言施法、结束回合）。
-- Docker 自建部署模板。
-- GitHub Actions：CI 类型检查 + Release 构建打包。
+- 共享规则核心：开局发牌、回合宣言、连击校验、咒语效果（1~8 基础逻辑）、回合结束与基础计分。
+- 房间流程：创建房间、加入房间、准备/取消准备、房主开始游戏、离开房间。
+- Web 真实交互模拟：支持 `mock://local` 一键本地模拟联机流程，完整体验从入房到出牌。
+- 响应式 UI 与桌游场景占位：桌面/移动布局、自适应面板、牌面/桌面资源占位尺寸提示。
+- CI/CD：GitHub Actions 提供 `typecheck + build`，并在 `v*` 标签自动打包发布。
 
-## Monorepo 结构
-
-- `packages/shared`：共享规则、状态机、协议类型。
-- `apps/server`：联机服务器（房间管理、权威回合结算）。
-- `apps/web`：浏览器客户端。
-- `apps/mobile`：移动端客户端骨架（可接 Expo/React Native）。
-- `apps/desktop`：桌面端壳层骨架（可接 Tauri/Electron）。
-- `infra/docker`：服务器容器化部署模板。
-- `.github/workflows`：CI/CD。
-
-## 本地开发
+## 本地运行
 
 ```bash
 npm install
@@ -30,11 +19,10 @@ npm run build
 npm run start:server
 ```
 
-然后打开 `apps/web/src/main.ts` 所在前端工程（目前是最小 TS 页面骨架，可接入 Vite）。
+Web 端建议先使用 `mock://local` 进行无后端调试，再替换为真实 WS 地址。
 
-## 下一步建议
+## 文档
 
-1. 完成所有咒语效果（1~8）与回合结算规则。
-2. 增加持久化（Redis/Postgres）与断线重连恢复。
-3. 为 web/mobile 增加统一 UI 与状态管理（React + RN）。
-4. 对接桌面打包（Tauri）和移动端构建发布流水线。
+- 游戏规则开发参考：`RULES_ABRACA_WHAT_DEV_REFERENCE.md`
+- 架构说明：`docs/ARCHITECTURE.md`
+- UI 资源规格：`docs/UI_ASSET_SPECS.md`

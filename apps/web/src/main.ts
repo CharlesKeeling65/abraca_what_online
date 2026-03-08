@@ -1,13 +1,20 @@
 import type { GameSnapshot, ServerToClientMessage } from "../../../packages/shared/src/index";
 import { WebGameClient } from "./network/client";
-import { renderApp } from "./app/App";
+import { APP_STYLE, renderApp } from "./app/App";
+
+const style = document.createElement("style");
+style.textContent = APP_STYLE;
+document.head.append(style);
 
 const root = document.createElement("div");
+root.className = "root";
 const controls = document.createElement("div");
+controls.className = "controls";
 const statePanel = document.createElement("div");
 
 let snapshot: GameSnapshot | null = null;
 let roomId = "";
+let ready = false;
 
 const client = new WebGameClient();
 
@@ -28,12 +35,18 @@ function onMessage(msg: ServerToClientMessage): void {
     return;
   }
 
-  // eslint-disable-next-line no-alert
-  alert(`${msg.type}: ${JSON.stringify(msg.payload)}`);
+  if (msg.type === "RULE_ERROR") {
+    // eslint-disable-next-line no-alert
+    alert(`规则错误: ${msg.payload.message}`);
+    return;
+  }
+
+  // eslint-disable-next-line no-console
+  console.log(msg.type, msg.payload);
 }
 
 const wsInput = document.createElement("input");
-wsInput.value = "ws://localhost:8080";
+wsInput.value = "mock://local";
 
 const nameInput = document.createElement("input");
 nameInput.placeholder = "昵称";
@@ -44,18 +57,36 @@ roomInput.placeholder = "房间号（可空）";
 
 const connectBtn = document.createElement("button");
 connectBtn.innerText = "连接";
-connectBtn.onclick = () => client.connect(wsInput.value, onMessage);
+connectBtn.onclick = () => client.connect(wsInput.value, onMessage, nameInput.value);
 
 const createBtn = document.createElement("button");
 createBtn.innerText = "建房";
 createBtn.onclick = () => {
-  client.send({ type: "CREATE_ROOM", payload: { nickname: nameInput.value, preferredRoomId: roomInput.value || undefined } });
+  client.send({
+    type: "CREATE_ROOM",
+    payload: { nickname: nameInput.value, preferredRoomId: roomInput.value || undefined },
+  });
 };
 
 const joinBtn = document.createElement("button");
 joinBtn.innerText = "加入";
 joinBtn.onclick = () => {
   client.send({ type: "JOIN_ROOM", payload: { roomId: roomInput.value, nickname: nameInput.value } });
+};
+
+const readyBtn = document.createElement("button");
+readyBtn.innerText = "准备/取消准备";
+readyBtn.onclick = () => {
+  if (!roomId) return;
+  ready = !ready;
+  client.send({ type: "TOGGLE_READY", payload: { roomId, ready } });
+};
+
+const startBtn = document.createElement("button");
+startBtn.innerText = "开始游戏";
+startBtn.onclick = () => {
+  if (!roomId) return;
+  client.send({ type: "START_GAME", payload: { roomId } });
 };
 
 const spellInput = document.createElement("input");
@@ -78,7 +109,30 @@ endTurnBtn.onclick = () => {
   client.send({ type: "END_TURN", payload: { roomId } });
 };
 
-controls.append(wsInput, nameInput, roomInput, connectBtn, createBtn, joinBtn, spellInput, declareBtn, endTurnBtn);
+const leaveBtn = document.createElement("button");
+leaveBtn.innerText = "离开房间";
+leaveBtn.onclick = () => {
+  if (!roomId) return;
+  client.send({ type: "LEAVE_ROOM", payload: { roomId } });
+  roomId = "";
+  snapshot = null;
+  refresh();
+};
+
+controls.append(
+  wsInput,
+  nameInput,
+  roomInput,
+  connectBtn,
+  createBtn,
+  joinBtn,
+  readyBtn,
+  startBtn,
+  spellInput,
+  declareBtn,
+  endTurnBtn,
+  leaveBtn,
+);
 root.append(controls, statePanel);
 document.body.append(root);
 refresh();

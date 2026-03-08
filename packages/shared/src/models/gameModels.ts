@@ -15,6 +15,7 @@ export interface PlayerPublicState {
   seatIndex: number;
   handCount: number;
   isAlive: boolean;
+  isReady: boolean;
 }
 
 export interface PlayerPrivateState {

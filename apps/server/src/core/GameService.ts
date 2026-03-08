@@ -1,5 +1,6 @@
 import {
   applyDeclareSpell,
+  endTurn,
   resolveRoundIfNeeded,
   type RoomRuntimeState,
   type SpellId,
@@ -8,8 +9,10 @@ import {
 export class GameService {
   handleDeclareSpell(runtime: RoomRuntimeState, playerId: string, spellId: SpellId): RoomRuntimeState {
     const result = applyDeclareSpell(runtime, playerId, spellId);
-    const nextRoom = resolveRoundIfNeeded(result.runtime.room);
-    result.runtime.room = nextRoom;
-    return result.runtime;
+    return resolveRoundIfNeeded(result.runtime);
+  }
+
+  handleEndTurn(runtime: RoomRuntimeState, playerId: string): RoomRuntimeState {
+    return endTurn(runtime, playerId);
   }
 }
