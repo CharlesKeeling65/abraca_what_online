@@ -2,7 +2,7 @@
 
 《出包魔法师（Abraca... What?）》跨端联机工程仓库。这个仓库的目标是沉淀一套可复用的共享规则层、权威服务端和多端客户端骨架，而不是只做单机规则模拟。
 
-当前状态可以概括为：`shared + server` 已经形成最小可验证闭环，`web` 仍偏原型，`mobile / desktop` 仍是后续扩展位。更完整的审计见 [docs/PROJECT_STATUS.md](/Users/wyb/File/Programming/Git_Code/abraca_what_online/docs/PROJECT_STATUS.md)。
+当前状态可以概括为：`shared + server` 已经形成最小可验证闭环，`web` 已具备正式构建链和沉浸式牌桌 UI 基础，`mobile / desktop` 则进入“可复用这套场景与资源合同”的阶段。更完整的审计见 [docs/PROJECT_STATUS.md](/Users/wyb/File/Programming/Git_Code/abraca_what_online/docs/PROJECT_STATUS.md)。
 
 ## 仓库结构
 
@@ -11,7 +11,7 @@
 - `apps/server`
   权威服务端，当前提供 HTTP 健康检查和 WebSocket 房间消息入口。
 - `apps/web`
-  Web 端源码骨架，当前仍以本地 mock 调试和 UI 占位为主。
+  Web 端正式构建入口，支持 Vite 构建、mock 联机和桌游场景 UI。
 - `apps/mobile`
   移动端网络层和状态层骨架。
 - `apps/desktop`
@@ -45,8 +45,7 @@
 
 ### 当前仍未完成
 
-- Web 端还没有正式 bundler 和可交付浏览器构建产物。
-- Mobile / Desktop 仍是骨架。
+- Mobile / Desktop 仍未形成可直接发布的安装包。
 - 规则边界测试还不够完整。
 - 服务端还没有持久化、鉴权、重连和观战。
 
@@ -118,7 +117,28 @@ npm run build
 
 产物会输出到 `dist/`。
 
-### 2. 启动服务端
+### 2. 构建 Web 客户端
+
+```bash
+npm run build:web
+```
+
+Web 构建产物输出到 `dist/web/`。
+
+### 3. 启动 Web 开发环境
+
+```bash
+npm run dev:web
+```
+
+默认可在 `http://127.0.0.1:4173` 访问。
+
+输入框中可使用：
+
+- `mock://local` 做本地无后端联调
+- `ws://127.0.0.1:8080/ws` 连接真实服务端
+
+### 4. 启动服务端
 
 ```bash
 npm run start:server
@@ -133,20 +153,21 @@ npm run start:server
 
 - 健康检查: `http://127.0.0.1:8080/health`
 - WebSocket: `ws://127.0.0.1:8080/ws`
+- 如 `dist/web` 已存在，根路径 `/` 会直接托管 Web 构建产物
 
-### 3. 自定义端口启动
+### 5. 自定义端口启动
 
 ```bash
 HOST=127.0.0.1 PORT=9000 npm run start:server
 ```
 
-### 4. Web 端现状说明
+### 6. Web / Desktop / Android 现状说明
 
-当前 `apps/web` 仍是源码骨架，没有正式 Vite/webpack 构建链，因此它更适合作为前端实现参考，而不是直接发布产物。现阶段推荐开发顺序是：
+当前 Web 已经有正式构建链和统一资源命名，Desktop 与 Android 仍建议在此基础上封装。现阶段推荐开发顺序是：
 
 1. 先完善 `packages/shared` 和 `apps/server`
-2. 再为 `apps/web` 补正式 bundler
-3. 最后推进 Mobile / Desktop
+2. 用 `apps/web` 作为桌面与移动端场景母版
+3. 最后推进 Tauri 与 React Native / Expo 壳层
 
 ## Docker 运行
 
@@ -217,7 +238,7 @@ git push origin v0.3.0
 ### 当前建议
 
 - 把服务端作为首个正式交付目标。
-- 客户端先以协议兼容和界面原型为目标，不要过早承诺三端同步上线。
+- 客户端先以共享场景与资源合同为目标，不要过早拆成三套独立 UI。
 - 版本发布优先用 Git tag 驱动，避免手工打包。
 
 ### 下一步推荐增强
