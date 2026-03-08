@@ -5,6 +5,7 @@ services:
     build:
       context: ../../
       dockerfile: infra/docker/Dockerfile.server
+    restart: unless-stopped
     environment:
       HOST: 0.0.0.0
       PORT: 8080

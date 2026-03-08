@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   build-and-release:
@@ -24,16 +25,41 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Verify
+        run: npm run verify
 
       - name: Package artifacts
         run: |
           mkdir -p release
-          tar -czf release/abraca-what-online-${GITHUB_REF_NAME}.tar.gz dist package.json README.md docs infra
+          tar -czf release/abraca-what-online-${GITHUB_REF_NAME}.tar.gz dist package.json package-lock.json README.md docs infra
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: release/*.tar.gz
           generate_release_notes: true
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/abraca-what-online-server
+          tags: |
+            type=ref,event=tag
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.server
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
