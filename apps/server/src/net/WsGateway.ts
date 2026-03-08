@@ -37,6 +37,31 @@ export class WsGateway {
     this.clients.delete(clientId);
   }
 
+  getClientRoomId(clientId: string): string | undefined {
+    return this.clients.get(clientId)?.roomId;
+  }
+
+  getRoomClientIds(roomId: string): string[] {
+    return this.rooms.getClientIds(roomId);
+  }
+
+  getAllClientIds(): string[] {
+    return [...this.clients.keys()];
+  }
+
+  publicSnapshot(roomId: string): ServerToClientMessage {
+    return this.snapshot(roomId);
+  }
+
+  roomListUpdate(): ServerToClientMessage {
+    return {
+      type: "ROOM_LIST_UPDATED",
+      payload: {
+        rooms: this.rooms.listRooms(),
+      },
+    };
+  }
+
   handleMessage(clientId: string, msg: ClientToServerMessage): ServerToClientMessage[] {
     const session = this.clients.get(clientId);
     if (!session) return [this.ruleError("NO_SESSION", "Client session missing", false)];

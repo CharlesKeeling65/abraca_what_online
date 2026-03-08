@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { extname, join, normalize } from "node:path";
 import { URL } from "node:url";
-import { WebSocketServer, type WebSocket } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 
 import type { ClientToServerMessage } from "../../../../packages/shared/src/index";
 import { loadEnv, type ServerEnv } from "../config/env";
@@ -92,39 +92,96 @@ function handleHttpRequest(req: IncomingMessage, res: ServerResponse): void {
   sendJson(res, 404, { ok: false, error: "Not found" });
 }
 
-function registerSocketHandlers(socket: WebSocket, gateway: WsGateway, request: IncomingMessage): void {
+function sendMessage(socket: WebSocket | undefined, message: unknown): void {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    return;
+  }
+  socket.send(JSON.stringify(message));
+}
+
+function registerSocketHandlers(
+  socket: WebSocket,
+  gateway: WsGateway,
+  request: IncomingMessage,
+  socketsByClientId: Map<string, WebSocket>,
+): void {
   const url = new URL(request.url ?? "/ws", "http://local.server");
   const nickname = url.searchParams.get("nickname")?.trim() || "player";
   const session = gateway.connectClient(nickname);
+  socketsByClientId.set(session.clientId, socket);
+  sendMessage(socket, gateway.roomListUpdate());
+
+  function broadcastRoom(roomId: string): void {
+    const snapshot = gateway.publicSnapshot(roomId);
+    gateway.getRoomClientIds(roomId).forEach((clientId) => {
+      sendMessage(socketsByClientId.get(clientId), snapshot);
+    });
+  }
+
+  function broadcastRoomList(): void {
+    const update = gateway.roomListUpdate();
+    gateway.getAllClientIds().forEach((clientId) => {
+      sendMessage(socketsByClientId.get(clientId), update);
+    });
+  }
 
   socket.on("message", (raw) => {
     try {
       const message = JSON.parse(raw.toString()) as ClientToServerMessage;
       const responses = gateway.handleMessage(session.clientId, message);
-      responses.forEach((response) => socket.send(JSON.stringify(response)));
+      responses.forEach((response) => sendMessage(socket, response));
+
+      const roomId = "roomId" in message.payload ? message.payload.roomId : undefined;
+      if (roomId && responseNeedsRoomSync(message.type)) {
+        broadcastRoom(roomId);
+      }
+      if (responseNeedsRoomListSync(message.type)) {
+        broadcastRoomList();
+      }
     } catch (error) {
-      socket.send(
-        JSON.stringify({
+      sendMessage(socket, {
           type: "RULE_ERROR",
           payload: {
             code: "BAD_MESSAGE",
             message: error instanceof Error ? error.message : "Invalid message",
             recoverable: true,
           },
-        }),
-      );
+        });
     }
   });
 
   socket.on("close", () => {
+    const roomId = gateway.getClientRoomId(session.clientId);
     gateway.disconnectClient(session.clientId);
+    socketsByClientId.delete(session.clientId);
+    if (roomId) {
+      broadcastRoom(roomId);
+    }
+    broadcastRoomList();
   });
+}
+
+function responseNeedsRoomSync(messageType: ClientToServerMessage["type"]): boolean {
+  return (
+    messageType === "JOIN_ROOM" ||
+    messageType === "TOGGLE_READY" ||
+    messageType === "START_GAME" ||
+    messageType === "DECLARE_SPELL" ||
+    messageType === "END_TURN" ||
+    messageType === "RESYNC" ||
+    messageType === "LEAVE_ROOM"
+  );
+}
+
+function responseNeedsRoomListSync(messageType: ClientToServerMessage["type"]): boolean {
+  return messageType === "CREATE_ROOM" || messageType === "JOIN_ROOM" || messageType === "LEAVE_ROOM";
 }
 
 export async function createServerApp(env: ServerEnv = loadEnv()): Promise<ServerApp> {
   const gateway = new WsGateway();
   const httpServer = createServer(handleHttpRequest);
   const wsServer = new WebSocketServer({ noServer: true });
+  const socketsByClientId = new Map<string, WebSocket>();
 
   httpServer.on("upgrade", (request, socket, head) => {
     const url = new URL(request.url ?? "/", "http://local.server");
@@ -134,7 +191,7 @@ export async function createServerApp(env: ServerEnv = loadEnv()): Promise<Serve
     }
 
     wsServer.handleUpgrade(request, socket, head, (webSocket) => {
-      registerSocketHandlers(webSocket, gateway, request);
+      registerSocketHandlers(webSocket, gateway, request, socketsByClientId);
     });
   });
 

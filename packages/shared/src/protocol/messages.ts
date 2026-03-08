@@ -1,5 +1,13 @@
 import type { GameSnapshot, SpellId } from "../models/gameModels";
 
+export interface RoomListItem {
+  roomId: string;
+  hostNickname: string;
+  playerCount: number;
+  readyCount: number;
+  phase: "waiting" | "in_round" | "scoring" | "finished";
+}
+
 export type ClientToServerMessage =
   | { type: "CREATE_ROOM"; payload: { nickname: string; preferredRoomId?: string } }
   | { type: "JOIN_ROOM"; payload: { roomId: string; nickname: string } }
@@ -14,6 +22,7 @@ export type ServerToClientMessage =
   | { type: "ROOM_CREATED"; payload: { roomId: string; youAre: string } }
   | { type: "ROOM_JOINED"; payload: { roomId: string; youAre: string } }
   | { type: "ROOM_LEFT"; payload: { roomId: string; youAre: string } }
+  | { type: "ROOM_LIST_UPDATED"; payload: { rooms: RoomListItem[] } }
   | { type: "GAME_SNAPSHOT"; payload: GameSnapshot }
   | { type: "RULE_ERROR"; payload: { code: string; message: string; recoverable: boolean } }
   | { type: "SYSTEM_NOTICE"; payload: { message: string } };

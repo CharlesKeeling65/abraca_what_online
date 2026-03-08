@@ -1,4 +1,4 @@
-import { createInitialRuntimeRoom, type RoomState } from "../../../../packages/shared/src/index";
+import { createInitialRuntimeRoom, type RoomListItem, type RoomState } from "../../../../packages/shared/src/index";
 import type { Room } from "./Room";
 
 export class RoomManager {
@@ -75,5 +75,24 @@ export class RoomManager {
 
   detachClient(clientId: string): void {
     this.rooms.forEach((room) => room.clients.delete(clientId));
+  }
+
+  getClientIds(roomId: string): string[] {
+    return [...(this.rooms.get(roomId)?.clients ?? [])];
+  }
+
+  listRooms(): RoomListItem[] {
+    return [...this.rooms.values()]
+      .map((room) => {
+        const host = room.runtime.room.players.find((player) => player.playerId === room.runtime.room.hostPlayerId);
+        return {
+          roomId: room.runtime.room.roomId,
+          hostNickname: host?.nickname ?? "Host",
+          playerCount: room.runtime.room.players.length,
+          readyCount: room.runtime.room.players.filter((player) => player.isReady).length,
+          phase: room.runtime.room.round.phase,
+        };
+      })
+      .sort((a, b) => a.roomId.localeCompare(b.roomId));
   }
 }
