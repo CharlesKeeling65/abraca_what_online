@@ -26,9 +26,27 @@ export class WebGameClient {
 
     if (this.ws && this.ws.readyState === WebSocket.OPEN) return;
     this.ws = new WebSocket(url);
+    this.ws.onopen = () => {
+      onMessage({
+        type: "SYSTEM_NOTICE",
+        payload: { message: `Connected websocket as ${nickname}` },
+      });
+    };
     this.ws.onmessage = (ev) => {
       const msg = JSON.parse(ev.data) as ServerToClientMessage;
       onMessage(msg);
+    };
+    this.ws.onerror = () => {
+      onMessage({
+        type: "SYSTEM_NOTICE",
+        payload: { message: "WebSocket transport error" },
+      });
+    };
+    this.ws.onclose = () => {
+      onMessage({
+        type: "SYSTEM_NOTICE",
+        payload: { message: "WebSocket disconnected" },
+      });
     };
   }
 

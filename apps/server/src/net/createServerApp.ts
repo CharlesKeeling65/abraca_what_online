@@ -1,4 +1,6 @@
-import { createServer, type IncomingMessage, type Server as HttpServer, type ServerResponse } from "node:http";
+import { existsSync, readFileSync } from "node:fs";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { extname, join, normalize } from "node:path";
 import { URL } from "node:url";
 import { WebSocketServer, type WebSocket } from "ws";
 
@@ -19,6 +21,48 @@ function sendJson(res: ServerResponse, statusCode: number, payload: unknown): vo
   res.end(JSON.stringify(payload));
 }
 
+function contentTypeFor(pathname: string): string {
+  switch (extname(pathname)) {
+    case ".html":
+      return "text/html; charset=utf-8";
+    case ".js":
+      return "text/javascript; charset=utf-8";
+    case ".css":
+      return "text/css; charset=utf-8";
+    case ".svg":
+      return "image/svg+xml";
+    case ".png":
+      return "image/png";
+    case ".json":
+      return "application/json; charset=utf-8";
+    default:
+      return "application/octet-stream";
+  }
+}
+
+function webDistRoot(): string {
+  return join(__dirname, "../../../../web");
+}
+
+function tryServeBuiltWeb(method: string | undefined, pathname: string, res: ServerResponse): boolean {
+  const root = webDistRoot();
+  const candidate = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
+  const filePath = normalize(join(root, candidate));
+
+  if (!filePath.startsWith(root) || !existsSync(filePath)) {
+    return false;
+  }
+
+  res.statusCode = 200;
+  res.setHeader("content-type", contentTypeFor(filePath));
+  if (method === "HEAD") {
+    res.end();
+    return true;
+  }
+  res.end(readFileSync(filePath));
+  return true;
+}
+
 function handleHttpRequest(req: IncomingMessage, res: ServerResponse): void {
   if (!req.url) {
     sendJson(res, 400, { ok: false, error: "Missing URL" });
@@ -26,12 +70,16 @@ function handleHttpRequest(req: IncomingMessage, res: ServerResponse): void {
   }
 
   const url = new URL(req.url, "http://local.server");
-  if (req.method === "GET" && url.pathname === "/health") {
+  if ((req.method === "GET" || req.method === "HEAD") && url.pathname === "/health") {
     sendJson(res, 200, { ok: true, transport: "http+ws" });
     return;
   }
 
-  if (req.method === "GET" && url.pathname === "/") {
+  if ((req.method === "GET" || req.method === "HEAD") && tryServeBuiltWeb(req.method, url.pathname, res)) {
+    return;
+  }
+
+  if ((req.method === "GET" || req.method === "HEAD") && url.pathname === "/") {
     sendJson(res, 200, {
       ok: true,
       name: "abraca-what-online",

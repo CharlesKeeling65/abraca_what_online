@@ -18,6 +18,34 @@ test("server app exposes health endpoint", async () => {
   }
 });
 
+test("server app serves built web client from root", async () => {
+  const app = await createServerApp({ host: "127.0.0.1", port: 0 });
+  await app.listen();
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${app.port}/`);
+    const html = await response.text();
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("content-type") ?? "", /text\/html/);
+    assert.match(html, /<div id="app"><\/div>/);
+  } finally {
+    await app.close();
+  }
+});
+
+test("server app supports HEAD on the web root", async () => {
+  const app = await createServerApp({ host: "127.0.0.1", port: 0 });
+  await app.listen();
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${app.port}/`, { method: "HEAD" });
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("content-type") ?? "", /text\/html/);
+  } finally {
+    await app.close();
+  }
+});
+
 test("server app accepts websocket clients and returns room snapshot", async () => {
   const app = await createServerApp({ host: "127.0.0.1", port: 0 });
   await app.listen();
