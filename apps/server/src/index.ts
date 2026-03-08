@@ -1,11 +1,12 @@
 import { loadEnv } from "./config/env";
+import { WsGateway } from "./net/WsGateway";
 
-function bootstrap(): void {
+function bootstrap(): WsGateway {
   const env = loadEnv();
-  // TODO: 接入 ws/http 框架（如 ws + fastify / uWebSockets.js）。
-  // 当前阶段只保留入口骨架。
+  const gateway = new WsGateway();
   // eslint-disable-next-line no-console
-  console.log(`[server] Abraca What Online server skeleton @ ${env.host}:${env.port}`);
+  console.log(`[server] gateway ready on ${env.host}:${env.port}`);
+  return gateway;
 }
 
 bootstrap();

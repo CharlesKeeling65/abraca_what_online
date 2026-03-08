@@ -1,7 +1,8 @@
-import type { RoomState } from "../../../../packages/shared/src";
+import type { RoomRuntimeState } from "../../../../packages/shared/src/index";
 
 export interface Room {
-  state: RoomState;
+  runtime: RoomRuntimeState;
   createdAt: number;
   updatedAt: number;
+  clients: Set<string>;
 }

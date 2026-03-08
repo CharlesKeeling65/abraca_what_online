@@ -1,4 +1,4 @@
-import type { ClientToServerMessage } from "../../../../packages/shared/src";
+import type { ClientToServerMessage } from "../../../../packages/shared/src/index";
 
 /**
  * 移动端网络层骨架（React Native / Expo 可复用）。

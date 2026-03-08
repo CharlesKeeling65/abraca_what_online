@@ -1,4 +1,4 @@
-import type { GameSnapshot } from "../../../../packages/shared/src";
+import type { GameSnapshot } from "../../../../packages/shared/src/index";
 
 export interface WebGameStore {
   snapshot: GameSnapshot | null;

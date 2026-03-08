@@ -1,33 +1,18 @@
 import {
+  applyDeclareSpell,
+  endTurn,
   resolveRoundIfNeeded,
-  validateComboOrder,
-  validateSpellRange,
-  type RoomState,
+  type RoomRuntimeState,
   type SpellId,
-} from "../../../../packages/shared/src";
+} from "../../../../packages/shared/src/index";
 
 export class GameService {
-  handleDeclareSpell(room: RoomState, spellId: SpellId): RoomState {
-    const rangeResult = validateSpellRange(spellId);
-    if (!rangeResult.ok) {
-      throw new Error(rangeResult.reason);
-    }
+  handleDeclareSpell(runtime: RoomRuntimeState, playerId: string, spellId: SpellId): RoomRuntimeState {
+    const result = applyDeclareSpell(runtime, playerId, spellId);
+    return resolveRoundIfNeeded(result.runtime);
+  }
 
-    const comboResult = validateComboOrder(room.round.lastSuccessfulSpellId, spellId);
-    if (!comboResult.ok) {
-      throw new Error(comboResult.reason);
-    }
-
-    // TODO: 命中判定、移除咒语石、施法效果结算、补牌逻辑。
-
-    const nextRoom = {
-      ...room,
-      round: {
-        ...room.round,
-        lastSuccessfulSpellId: spellId,
-      },
-    };
-
-    return resolveRoundIfNeeded(nextRoom);
+  handleEndTurn(runtime: RoomRuntimeState, playerId: string): RoomRuntimeState {
+    return endTurn(runtime, playerId);
   }
 }
