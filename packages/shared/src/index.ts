@@ -1,4 +1,5 @@
 export * from "./constants/gameConstants";
+export * from "./assets/assetManifest";
 export * from "./models/gameModels";
 export * from "./models/actions";
 export * from "./protocol/messages";
